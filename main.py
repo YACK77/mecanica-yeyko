@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -31,6 +31,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Middleware para Vercel Serverless: restaurar la ruta original solicitada
+@app.middleware("http")
+async def vercel_path_middleware(request: Request, call_next):
+    original_uri = request.headers.get("x-forwarded-uri") or request.headers.get("x-matched-path")
+    if original_uri:
+        request.scope["path"] = original_uri.split("?")[0]
+    elif request.scope.get("path") in ["/api/index.py", "/api/index", "/api"]:
+        request.scope["path"] = "/"
+    return await call_next(request)
+
 # Configuración de rutas de archivos estáticos
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
@@ -39,6 +49,8 @@ if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.get("/", tags=["Interfaz Web"])
+@app.get("/api/index.py", include_in_schema=False)
+@app.get("/api/index", include_in_schema=False)
 def read_root():
     """Servir la interfaz web visual amigable de Mecánica Yeyko."""
     posibles_rutas = [
@@ -59,6 +71,7 @@ def read_root():
         "estado": "En línea",
         "documentacion_swagger": "/docs"
     }
+
 
 
 

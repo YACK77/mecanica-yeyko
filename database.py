@@ -5,8 +5,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Si DATABASE_URL no está definida o se quiere probar localmente, usa SQLite por defecto
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./sql_app.db")
+
+# Compatibilidad con Vercel Serverless (pg8000 es 100% puro Python, sin requerir libpq C)
+if DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+pg8000://", 1)
+elif DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+pg8000://", 1)
 
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
@@ -26,4 +31,3 @@ def get_db():
         yield db
     finally:
         db.close()
-

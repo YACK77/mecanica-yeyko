@@ -11,7 +11,10 @@ import schemas
 from database import engine, get_db
 
 # Crear tablas automáticamente en la base de datos (Supabase) si no existen
-models.Base.metadata.create_all(bind=engine)
+try:
+    models.Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"Advertencia al verificar tablas: {e}")
 
 app = FastAPI(
     title="API Mecánica Yeyko - Gestión, Ventas e Inventario",
@@ -31,7 +34,6 @@ app.add_middleware(
 # Configuración de rutas de archivos estáticos
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
-INDEX_FILE = os.path.join(STATIC_DIR, "index.html")
 
 if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -39,8 +41,19 @@ if os.path.exists(STATIC_DIR):
 @app.get("/", tags=["Interfaz Web"])
 def read_root():
     """Servir la interfaz web visual amigable de Mecánica Yeyko."""
-    if os.path.exists(INDEX_FILE):
-        return FileResponse(INDEX_FILE)
+    posibles_rutas = [
+        os.path.join(BASE_DIR, "static", "index.html"),
+        os.path.join(BASE_DIR, "index.html"),
+        os.path.join(BASE_DIR, "api", "index.html"),
+        "static/index.html",
+        "index.html"
+    ]
+    for ruta in posibles_rutas:
+        if os.path.exists(ruta):
+            with open(ruta, "r", encoding="utf-8") as f:
+                from fastapi.responses import HTMLResponse
+                return HTMLResponse(content=f.read())
+
     return {
         "sistema": "Mecánica Yeyko - Sistema de Gestión y Control Operativo",
         "estado": "En línea",

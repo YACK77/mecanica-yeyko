@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mecánica Yeyko - Sistema de Gestión Operativa e Inventario</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 para Alertas Modernas -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- BARRA SUPERIOR DE NAVEGACIÓN -->
+    <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- LOGO Y TÍTULO -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-slate-950 font-black text-xl shadow-md">
+                        <i class="fa-solid fa-wrench"></i>
+                    </div>
+                    <div>
+                        <div class="font-extrabold text-lg tracking-tight text-white flex items-center gap-2">
+                            MECÁNICA YEYKO
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Supabase Conectado
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-400">Control Operativo, Ventas y Almacén • Santa Cruz, Bolivia</p>
+                    </div>
+                </div>
+
+                <!-- USUARIO Y ESTADO -->
+                <div class="flex items-center space-x-4">
+                    <div class="hidden md:flex flex-col text-right">
+                        <span class="text-sm font-semibold text-slate-200">Ivan Chiri Lupinta</span>
+                        <span class="text-xs text-amber-400 font-medium">Administrador del Taller</span>
+                    </div>
+                    <div class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 font-bold">
+                        <i class="fa-solid fa-user-gear"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NAVEGACIÓN POR PESTAÑAS (MÓDULOS) -->
+            <nav class="flex space-x-1 border-t border-slate-800 pt-1 pb-2 overflow-x-auto text-sm">
+                <button onclick="cambiarPestana('dashboard')" id="tab-dashboard" class="tab-btn px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 bg-amber-500 text-slate-950 font-bold">
+                    <i class="fa-solid fa-chart-pie"></i> Resumen General
+                </button>
+                <button onclick="cambiarPestana('inventario')" id="tab-inventario" class="tab-btn px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-boxes-stacked"></i> Inventario de Repuestos
+                </button>
+                <button onclick="cambiarPestana('ventas')" id="tab-ventas" class="tab-btn px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-cash-register"></i> Punto de Venta / Salida
+                </button>
+                <button onclick="cambiarPestana('compras')" id="tab-compras" class="tab-btn px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-truck-ramp-box"></i> Compras / Proveedores
+                </button>
+                <button onclick="cambiarPestana('kardex')" id="tab-kardex" class="tab-btn px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-clipboard-list"></i> Kardex y Auditoría
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+
+        <!-- ========================================== -->
+        <!-- PESTAÑA 1: DASHBOARD / RESUMEN GENERAL -->
+        <!-- ========================================== -->
+        <section id="sec-dashboard" class="space-y-6">
+            <!-- TARJETAS DE INDICADORES (KPIs) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                <!-- KPI 1 -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Ventas Realizadas</p>
+                        <h3 id="kpi-ventas" class="text-2xl font-extrabold text-slate-900 mt-1">Bs 0.00</h3>
+                        <p class="text-xs text-emerald-600 font-medium mt-1"><i class="fa-solid fa-check"></i> En tiempo real</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                    </div>
+                </div>
+
+                <!-- KPI 2 -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Repuestos en Catálogo</p>
+                        <h3 id="kpi-productos" class="text-2xl font-extrabold text-slate-900 mt-1">0 ítems</h3>
+                        <p class="text-xs text-blue-600 font-medium mt-1"><i class="fa-solid fa-box"></i> Existencias activas</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-cubes"></i>
+                    </div>
+                </div>
+
+                <!-- KPI 3: ALERTAS DE STOCK BAJO -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Alertas de Stock Mínimo</p>
+                        <h3 id="kpi-alertas" class="text-2xl font-extrabold text-amber-600 mt-1">0</h3>
+                        <p id="kpi-alertas-desc" class="text-xs text-slate-500 font-medium mt-1">Repuestos por agotarse</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                </div>
+
+                <!-- KPI 4 -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Inversión en Compras</p>
+                        <h3 id="kpi-compras" class="text-2xl font-extrabold text-slate-900 mt-1">Bs 0.00</h3>
+                        <p class="text-xs text-purple-600 font-medium mt-1"><i class="fa-solid fa-arrow-down"></i> Entradas a almacén</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-truck"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLA DE MOVIMIENTOS RECIENTES Y ACCIONES RÁPIDAS -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- MOVIMIENTOS RECIENTES -->
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-amber-500"></i> Últimos Movimientos en Almacén (Kardex)
+                        </h4>
+                        <button onclick="cambiarPestana('kardex')" class="text-xs font-semibold text-amber-600 hover:text-amber-700">Ver todo &rarr;</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold">
+                                <tr>
+                                    <th class="py-3 px-4">Fecha/Hora</th>
+                                    <th class="py-3 px-4">Tipo</th>
+                                    <th class="py-3 px-4">Cantidad</th>
+                                    <th class="py-3 px-4">Stock Final</th>
+                                    <th class="py-3 px-4">Referencia</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-dashboard-movimientos" class="divide-y divide-slate-100 text-slate-700">
+                                <tr><td colspan="5" class="py-4 text-center text-slate-400">Cargando movimientos...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ACCIONES RÁPIDAS DEL TALLER -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+                    <h4 class="font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-bolt text-amber-500"></i> Accesos Rápidos
+                    </h4>
+                    <p class="text-xs text-slate-500">Operaciones frecuentes para agilizar la atención en el taller "Mecánica Yeyko":</p>
+
+                    <button onclick="cambiarPestana('ventas')" class="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-sm transition flex items-center justify-between text-sm">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-cart-plus"></i> Despachar Repuesto / Venta</span>
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+
+                    <button onclick="cambiarPestana('compras')" class="w-full py-3 px-4 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-xl shadow-sm transition flex items-center justify-between text-sm">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-dolly"></i> Recibir Mercadería de Proveedor</span>
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+
+                    <button onclick="abrirModalProducto()" class="w-full py-3 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl shadow-sm transition flex items-center justify-between text-sm">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-plus-circle"></i> Agregar Nuevo Repuesto</span>
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+
+                    <!-- CAJA DE INFORMACIÓN DEL PROYECTO -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
+                        <p class="font-bold text-slate-800">📌 Información de Tesis / Grado</p>
+                        <p><strong>Postulante:</strong> Ivan Chiri Lupinta</p>
+                        <p><strong>Universidad:</strong> UDABOL - Sistemas</p>
+                        <p><strong>Base de Datos:</strong> Supabase PostgreSQL</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- PESTAÑA 2: INVENTARIO DE REPUESTOS -->
+        <!-- ========================================== -->
+        <section id="sec-inventario" class="space-y-6 hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900">Catálogo de Repuestos y Servicios</h3>
+                        <p class="text-xs text-slate-500">Control de existencias físicas, precios de compra y venta en Mecánica Yeyko</p>
+                    </div>
+                    <button onclick="abrirModalProducto()" class="py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl shadow-sm transition flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-plus"></i> Nuevo Repuesto / Insumo
+                    </button>
+                </div>
+
+                <!-- BUSCADOR Y FILTROS -->
+                <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                    <div class="relative flex-grow">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" id="busqueda-repuesto" oninput="filtrarRepuestos()" placeholder="Buscar por nombre, código SKU o categoría..." class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    </div>
+                    <select id="filtro-categoria" onchange="filtrarRepuestos()" class="py-2.5 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        <option value="">Todas las categorías</option>
+                        <option value="Lubricantes">Lubricantes</option>
+                        <option value="Filtros">Filtros</option>
+                        <option value="Frenos">Frenos</option>
+                        <option value="Encendido">Encendido</option>
+                        <option value="Servicios">Servicios (Mano de obra)</option>
+                    </select>
+                </div>
+
+                <!-- TABLA DE REPUESTOS -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold">
+                            <tr>
+                                <th class="py-3 px-4">SKU / Código</th>
+                                <th class="py-3 px-4">Descripción del Repuesto</th>
+                                <th class="py-3 px-4">Categoría</th>
+                                <th class="py-3 px-4">P. Compra</th>
+                                <th class="py-3 px-4">P. Venta</th>
+                                <th class="py-3 px-4 text-center">Stock Actual</th>
+                                <th class="py-3 px-4 text-center">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-repuestos" class="divide-y divide-slate-100 text-slate-700">
+                            <tr><td colspan="7" class="py-4 text-center text-slate-400">Cargando inventario...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- PESTAÑA 3: PUNTO DE VENTA / SALIDA DE TALLER -->
+        <!-- ========================================== -->
+        <section id="sec-ventas" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- FORMULARIO DE DETALLE Y CLIENTE -->
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-cart-shopping text-amber-500"></i> Despacho de Repuestos y Cobro
+                        </h3>
+                        <p class="text-xs text-slate-500">Registra los repuestos entregados para vehículos o clientes de mostrador con descuento automático de stock</p>
+                    </div>
+
+                    <!-- DATOS DEL CLIENTE Y VEHÍCULO -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Nombre del Cliente *</label>
+                            <input type="text" id="venta-cliente" value="Cliente General" class="w-full py-2 px-3 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">C.I. / NIT</label>
+                            <input type="text" id="venta-ci" placeholder="Ej. 6589231 SC" class="w-full py-2 px-3 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Placa del Vehículo</label>
+                            <input type="text" id="venta-placa" placeholder="Ej. 3491-YKT" class="w-full py-2 px-3 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none uppercase font-semibold">
+                        </div>
+                    </div>
+
+                    <!-- SELECTOR DE REPUESTOS -->
+                    <div class="border border-slate-200 rounded-xl p-4 bg-white space-y-3">
+                        <label class="block text-xs font-bold text-slate-600 uppercase">Seleccionar Repuesto para Agregar</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                            <div class="sm:col-span-8">
+                                <select id="venta-select-producto" class="w-full py-2 px-3 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                                    <option value="">Seleccione un repuesto o servicio...</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <input type="number" id="venta-cantidad" value="1" min="1" class="w-full py-2 px-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-center font-bold focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <button type="button" onclick="agregarAlCarrito()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-lg transition flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-plus"></i> Agregar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TABLA DEL CARRITO -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-100 text-slate-600 text-xs uppercase font-bold">
+                                <tr>
+                                    <th class="py-2.5 px-3">Repuesto / Concepto</th>
+                                    <th class="py-2.5 px-3 text-center">Cant.</th>
+                                    <th class="py-2.5 px-3 text-right">P. Unitario</th>
+                                    <th class="py-2.5 px-3 text-right">Subtotal</th>
+                                    <th class="py-2.5 px-3 text-center">Quitar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-carrito" class="divide-y divide-slate-100">
+                                <tr><td colspan="5" class="py-6 text-center text-slate-400">El carrito está vacío. Seleccione un repuesto arriba.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- RESUMEN DE COBRO Y CONFIRMACIÓN -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between space-y-6">
+                    <div class="space-y-4">
+                        <h4 class="font-bold text-slate-900 border-b pb-3">Resumen de la Venta</h4>
+                        
+                        <div class="space-y-2 text-sm text-slate-600">
+                            <div class="flex justify-between">
+                                <span>Ítems en la orden:</span>
+                                <span id="resumen-total-items" class="font-bold text-slate-900">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Moneda:</span>
+                                <span class="font-semibold text-slate-800">Bolivianos (Bs)</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Método de Cobro:</span>
+                                <select id="venta-metodo-pago" class="text-xs bg-slate-50 border border-slate-200 rounded p-1 font-semibold">
+                                    <option value="EFECTIVO">Efectivo</option>
+                                    <option value="QR">Pago QR</option>
+                                    <option value="TRANSFERENCIA">Transferencia</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-200">
+                            <p class="text-xs text-slate-500 uppercase font-bold">Total a Cobrar</p>
+                            <h2 id="resumen-gran-total" class="text-4xl font-black text-emerald-600 mt-1">Bs 0.00</h2>
+                        </div>
+                    </div>
+
+                    <button onclick="procesarVenta()" id="btn-procesar-venta" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-check-double"></i> Confirmar Venta y Descontar
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- PESTAÑA 4: COMPRAS Y ABASTECIMIENTO -->
+        <!-- ========================================== -->
+        <section id="sec-compras" class="space-y-6 hidden">
+            <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-truck-ramp-box text-purple-600"></i> Registrar Compra de Repuestos
+                    </h3>
+                    <p class="text-xs text-slate-500">Ingreso de mercadería desde distribuidores (Suma unidades al inventario en Supabase e impacta el Kardex)</p>
+                </div>
+
+                <form id="form-compra" onsubmit="procesarCompra(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Nombre del Proveedor *</label>
+                            <input type="text" id="compra-proveedor" placeholder="Ej. Autopartes Santa Cruz S.R.L." required class="w-full py-2 px-3 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">N° de Factura / Recibo</label>
+                            <input type="text" id="compra-factura" placeholder="Ej. FAC-9821" class="w-full py-2 px-3 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-purple-50/50 rounded-xl border border-purple-100 space-y-3">
+                        <label class="block text-xs font-bold text-purple-900 uppercase">Detalle del Repuesto a Recibir</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                            <div class="sm:col-span-6">
+                                <label class="block text-[11px] text-slate-500 mb-1">Repuesto</label>
+                                <select id="compra-producto" required class="w-full py-2 px-3 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                                    <option value="">Seleccionar repuesto...</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-3">
+                                <label class="block text-[11px] text-slate-500 mb-1">Cantidad a Ingresar</label>
+                                <input type="number" id="compra-cantidad" value="5" min="1" required class="w-full py-2 px-3 bg-white border border-slate-300 rounded-lg text-sm text-center font-bold focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                            </div>
+                            <div class="sm:col-span-3">
+                                <label class="block text-[11px] text-slate-500 mb-1">Costo Unitario (Bs)</label>
+                                <input type="number" step="0.5" id="compra-costo" placeholder="0.00" required class="w-full py-2 px-3 bg-white border border-slate-300 rounded-lg text-sm text-right font-bold focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btn-registrar-compra" class="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-arrow-down-to-bracket"></i> Confirmar Entrada a Almacén
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- PESTAÑA 5: KARDEX Y AUDITORÍA DE MOVIMIENTOS -->
+        <!-- ========================================== -->
+        <section id="sec-kardex" class="space-y-6 hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-clipboard-check text-amber-500"></i> Kardex de Movimientos de Almacén
+                        </h3>
+                        <p class="text-xs text-slate-500">Auditoría inmutable de entradas, salidas y ajustes de repuestos en Mecánica Yeyko</p>
+                    </div>
+                    <button onclick="cargarKardex()" class="text-xs font-semibold px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-right"></i> Actualizar
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold">
+                            <tr>
+                                <th class="py-3 px-4">Fecha y Hora</th>
+                                <th class="py-3 px-4">Tipo Movimiento</th>
+                                <th class="py-3 px-4">Repuesto</th>
+                                <th class="py-3 px-4 text-center">Cantidad</th>
+                                <th class="py-3 px-4 text-center">Stock Previo</th>
+                                <th class="py-3 px-4 text-center">Stock Resultante</th>
+                                <th class="py-3 px-4">Referencia / Motivo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-kardex" class="divide-y divide-slate-100 text-slate-700">
+                            <tr><td colspan="7" class="py-6 text-center text-slate-400">Cargando historial del Kardex...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: REGISTRAR NUEVO PRODUCTO -->
+    <div id="modal-producto" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4">
+            <div class="flex items-center justify-between border-b pb-3">
+                <h3 class="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-cube text-amber-500"></i> Nuevo Repuesto o Servicio
+                </h3>
+                <button onclick="cerrarModalProducto()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+
+            <form id="form-nuevo-producto" onsubmit="guardarProducto(event)" class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Código SKU *</label>
+                        <input type="text" id="prod-sku" placeholder="Ej. ACE-5W30-CASTROL" required class="w-full py-2 px-3 bg-slate-50 border border-slate-300 rounded-lg text-sm font-semibold uppercase focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Categoría *</label>
+                        <select id="prod-categoria" class="w-full py-2 px-3 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                            <option value="Lubricantes">Lubricantes</option>
+                            <option value="Filtros">Filtros</option>
+                            <option value="Frenos">Frenos</option>
+                            <option value="Encendido">Encendido</option>
+                            <option value="Suspensión">Suspensión</option>
+                            <option value="Servicios">Servicios</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Nombre Comercial del Repuesto *</label>
+                    <input type="text" id="prod-nombre" placeholder="Ej. Pastillas de Freno Traseras Suzuki Grand Vitara" required class="w-full py-2 px-3 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Precio Compra (Bs)</label>
+                        <input type="number" step="0.5" id="prod-precio-compra" value="0.00" class="w-full py-2 px-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-right font-bold focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Precio Venta (Bs) *</label>
+                        <input type="number" step="0.5" id="prod-precio-venta" placeholder="0.00" required class="w-full py-2 px-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-right font-bold text-emerald-600 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Stock Inicial</label>
+                        <input type="number" id="prod-stock" value="1" min="0" class="w-full py-2 px-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-center font-bold focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Stock Mínimo (Alerta)</label>
+                        <input type="number" id="prod-stock-minimo" value="3" min="0" class="w-full py-2 px-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-center font-bold focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 pt-1">
+                    <input type="checkbox" id="prod-es-servicio" class="w-4 h-4 text-amber-500 rounded border-slate-300 focus:ring-amber-500">
+                    <label for="prod-es-servicio" class="text-xs text-slate-700">Es un servicio / mano de obra (No controla stock físico)</label>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-4 border-t">
+                    <button type="button" onclick="cerrarModalProducto()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-sm shadow">Guardar Repuesto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <span>© 2026 Taller Mecánico <strong>"Mecánica Yeyko"</strong> - Santa Cruz de la Sierra, Bolivia</span>
+            <span>Sistema Desarrollado con <strong>FastAPI + Supabase PostgreSQL</strong></span>
+        </div>
+    </footer>
+
+    <!-- LÓGICA DE APLICACIÓN Y CONSUMO DEL API -->
+    <script>
+        const API_URL = "/api/v1";
+        let catalogoProductos = [];
+        let carritoVenta = [];
+
+        // Inicialización
+        document.addEventListener("DOMContentLoaded", () => {
+            cargarDashboard();
+            cargarProductos();
+            cargarKardex();
+        });
+
+        // Cambio de pestañas
+        function cambiarPestana(pestana) {
+            const tabs = ['dashboard', 'inventario', 'ventas', 'compras', 'kardex'];
+            tabs.forEach(t => {
+                const sec = document.getElementById(`sec-${t}`);
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === pestana) {
+                    sec.classList.remove('hidden');
+                    btn.className = "tab-btn px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 bg-amber-500 text-slate-950 shadow-sm";
+                } else {
+                    sec.classList.add('hidden');
+                    btn.className = "tab-btn px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800";
+                }
+            });
+
+            if (pestana === 'dashboard') cargarDashboard();
+            if (pestana === 'inventario') cargarProductos();
+            if (pestana === 'kardex') cargarKardex();
+        }
+
+        // ==========================================
+        // 1. CARGA DE DASHBOARD
+        // ==========================================
+        async function cargarDashboard() {
+            try {
+                const [resProd, resVentas, resCompras, resKardex] = await Promise.all([
+                    fetch(`${API_URL}/products`).then(r => r.json()),
+                    fetch(`${API_URL}/sales`).then(r => r.json()),
+                    fetch(`${API_URL}/purchases`).then(r => r.json()),
+                    fetch(`${API_URL}/movements`).then(r => r.json())
+                ]);
+
+                // KPIs
+                document.getElementById('kpi-productos').innerText = `${resProd.length} ítems`;
+                
+                const totalVentas = resVentas.reduce((acc, v) => acc + (v.total_venta || 0), 0);
+                document.getElementById('kpi-ventas').innerText = `Bs ${totalVentas.toFixed(2)}`;
+
+                const totalCompras = resCompras.reduce((acc, c) => acc + (c.total_compra || 0), 0);
+                document.getElementById('kpi-compras').innerText = `Bs ${totalCompras.toFixed(2)}`;
+
+                // Alertas de stock
+                const bajas = resProd.filter(p => !p.es_servicio && p.stock_actual <= p.stock_minimo);
+                document.getElementById('kpi-alertas').innerText = bajas.length;
+                if (bajas.length > 0) {
+                    document.getElementById('kpi-alertas').className = "text-2xl font-extrabold text-red-600 mt-1 animate-pulse";
+                    document.getElementById('kpi-alertas-desc').innerText = `⚠️ ${bajas.map(b => b.nombre).join(', ')}`;
+                } else {
+                    document.getElementById('kpi-alertas').className = "text-2xl font-extrabold text-emerald-600 mt-1";
+                    document.getElementById('kpi-alertas-desc').innerText = "Inventario en niveles óptimos";
+                }
+
+                // Movimientos en tabla de dashboard
+                const tbody = document.getElementById('tabla-dashboard-movimientos');
+                if (resKardex.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400">Sin movimientos registrados aún.</td></tr>`;
+                } else {
+                    tbody.innerHTML = resKardex.slice(0, 5).map(m => `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3 px-4 text-xs font-mono text-slate-500">${formatearFecha(m.fecha)}</td>
+                            <td class="py-3 px-4">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-bold ${badgeMovimiento(m.tipo_movimiento)}">
+                                    ${m.tipo_movimiento}
+                                </span>
+                            </td>
+                            <td class="py-3 px-4 font-bold text-center">${m.cantidad}</td>
+                            <td class="py-3 px-4 font-semibold text-slate-900 text-center">${m.stock_posterior}</td>
+                            <td class="py-3 px-4 text-xs text-slate-600">${m.referencia_origen || '-'}</td>
+                        </tr>
+                    `).join('');
+                }
+
+            } catch (err) {
+                console.error("Error al cargar dashboard:", err);
+            }
+        }
+
+        // ==========================================
+        // 2. INVENTARIO DE REPUESTOS
+        // ==========================================
+        async function cargarProductos() {
+            try {
+                const res = await fetch(`${API_URL}/products`);
+                catalogoProductos = await res.json();
+                renderizarTablaProductos(catalogoProductos);
+                actualizarSelectsProductos();
+            } catch (err) {
+                console.error("Error cargando productos:", err);
+            }
+        }
+
+        function renderizarTablaProductos(lista) {
+            const tbody = document.getElementById('tabla-repuestos');
+            if (lista.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">No se encontraron repuestos con ese criterio.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = lista.map(p => {
+                const esBajo = !p.es_servicio && p.stock_actual <= p.stock_minimo;
+                return `
+                    <tr class="hover:bg-slate-50 transition ${esBajo ? 'bg-amber-50/40' : ''}">
+                        <td class="py-3 px-4 font-mono font-bold text-xs text-slate-600">${p.sku}</td>
+                        <td class="py-3 px-4">
+                            <div class="font-bold text-slate-900">${p.nombre}</div>
+                            <div class="text-xs text-slate-400">${p.descripcion || 'Sin descripción'}</div>
+                        </td>
+                        <td class="py-3 px-4 text-xs font-semibold text-slate-500">${p.categoria}</td>
+                        <td class="py-3 px-4 text-right font-medium text-slate-500">Bs ${p.precio_compra.toFixed(2)}</td>
+                        <td class="py-3 px-4 text-right font-bold text-emerald-600">Bs ${p.precio_venta.toFixed(2)}</td>
+                        <td class="py-3 px-4 text-center">
+                            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-black ${p.es_servicio ? 'bg-slate-100 text-slate-600' : (esBajo ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700')}">
+                                ${p.es_servicio ? 'Servicio' : p.stock_actual + ' un.'}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            ${esBajo ? '<span class="text-xs text-red-600 font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> Stock Bajo</span>' : '<span class="text-xs text-emerald-600 font-semibold"><i class="fa-solid fa-check"></i> Disponible</span>'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filtrarRepuestos() {
+            const texto = document.getElementById('busqueda-repuesto').value.toLowerCase();
+            const cat = document.getElementById('filtro-categoria').value;
+
+            const filtrados = catalogoProductos.filter(p => {
+                const matchTexto = p.nombre.toLowerCase().includes(texto) || p.sku.toLowerCase().includes(texto) || p.categoria.toLowerCase().includes(texto);
+                const matchCat = cat === "" || p.categoria === cat;
+                return matchTexto && matchCat;
+            });
+
+            renderizarTablaProductos(filtrados);
+        }
+
+        function actualizarSelectsProductos() {
+            const selectVenta = document.getElementById('venta-select-producto');
+            const selectCompra = document.getElementById('compra-producto');
+
+            const options = catalogoProductos.map(p => 
+                `<option value="${p.id}">${p.nombre} (Stock: ${p.es_servicio ? '∞' : p.stock_actual}) - Bs ${p.precio_venta.toFixed(2)}</option>`
+            ).join('');
+
+            selectVenta.innerHTML = `<option value="">Seleccione un repuesto o servicio...</option>` + options;
+            selectCompra.innerHTML = `<option value="">Seleccionar repuesto...</option>` + options;
+        }
+
+        // ==========================================
+        // 3. CARRITO Y VENTA DE TALLER
+        // ==========================================
+        function agregarAlCarrito() {
+            const select = document.getElementById('venta-select-producto');
+            const cantInput = document.getElementById('venta-cantidad');
+            const prodId = parseInt(select.value);
+            const cant = parseInt(cantInput.value);
+
+            if (!prodId || cant <= 0) {
+                Swal.fire("Atención", "Seleccione un repuesto y una cantidad válida.", "warning");
+                return;
+            }
+
+            const prod = catalogoProductos.find(p => p.id === prodId);
+            if (!prod) return;
+
+            // Validar existencia de stock
+            if (!prod.es_servicio && prod.stock_actual < cant) {
+                Swal.fire("Stock Insuficiente", `Solo dispones de ${prod.stock_actual} unidades de '${prod.nombre}'.`, "error");
+                return;
+            }
+
+            // Verificar si ya está en el carrito
+            const existente = carritoVenta.find(it => it.product_id === prodId);
+            if (existente) {
+                if (!prod.es_servicio && prod.stock_actual < (existente.cantidad + cant)) {
+                    Swal.fire("Stock Insuficiente", `No puedes superar el stock disponible (${prod.stock_actual}).`, "error");
+                    return;
+                }
+                existente.cantidad += cant;
+                existente.subtotal = existente.cantidad * existente.precio_unitario;
+            } else {
+                carritoVenta.push({
+                    product_id: prod.id,
+                    nombre: prod.nombre,
+                    cantidad: cant,
+                    precio_unitario: prod.precio_venta,
+                    subtotal: cant * prod.precio_venta
+                });
+            }
+
+            renderizarCarrito();
+            cantInput.value = 1;
+        }
+
+        function quitarDelCarrito(index) {
+            carritoVenta.splice(index, 1);
+            renderizarCarrito();
+        }
+
+        function renderizarCarrito() {
+            const tbody = document.getElementById('tabla-carrito');
+            if (carritoVenta.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400">El carrito está vacío. Seleccione un repuesto arriba.</td></tr>`;
+                document.getElementById('resumen-total-items').innerText = "0";
+                document.getElementById('resumen-gran-total').innerText = "Bs 0.00";
+                return;
+            }
+
+            let total = 0;
+            let itemsCount = 0;
+
+            tbody.innerHTML = carritoVenta.map((it, idx) => {
+                total += it.subtotal;
+                itemsCount += it.cantidad;
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-2.5 px-3 font-semibold text-slate-800">${it.nombre}</td>
+                        <td class="py-2.5 px-3 text-center font-bold">${it.cantidad}</td>
+                        <td class="py-2.5 px-3 text-right font-medium">Bs ${it.precio_unitario.toFixed(2)}</td>
+                        <td class="py-2.5 px-3 text-right font-bold text-slate-900">Bs ${it.subtotal.toFixed(2)}</td>
+                        <td class="py-2.5 px-3 text-center">
+                            <button onclick="quitarDelCarrito(${idx})" class="text-red-500 hover:text-red-700 text-sm">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('resumen-total-items').innerText = itemsCount;
+            document.getElementById('resumen-gran-total').innerText = `Bs ${total.toFixed(2)}`;
+        }
+
+        async function procesarVenta() {
+            if (carritoVenta.length === 0) {
+                Swal.fire("Carrito vacío", "Agrega al menos un repuesto para procesar la venta.", "info");
+                return;
+            }
+
+            const cliente = document.getElementById('venta-cliente').value.trim() || "Cliente General";
+            const ci = document.getElementById('venta-ci').value.trim();
+            const placa = document.getElementById('venta-placa').value.trim().toUpperCase();
+            const metodo = document.getElementById('venta-metodo-pago').value;
+
+            const payload = {
+                cliente_nombre: cliente,
+                cliente_ci_nit: ci || null,
+                placa_vehiculo: placa || null,
+                metodo_pago: metodo,
+                items: carritoVenta.map(it => ({
+                    product_id: it.product_id,
+                    cantidad: it.cantidad
+                }))
+            };
+
+            const btn = document.getElementById('btn-procesar-venta');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Registrando en Supabase...`;
+
+            try {
+                const res = await fetch(`${API_URL}/sales/checkout`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || "Error en la transacción");
+                }
+
+                const data = await res.json();
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Venta Registrada con Éxito!',
+                    html: `<b>Folio:</b> #${data.id}<br><b>Total Cobrado:</b> Bs ${data.total_venta.toFixed(2)}<br><i>Stock descontado automáticamente en Supabase.</i>`,
+                    confirmButtonColor: '#10b981'
+                });
+
+                // Limpiar carrito y recargar datos
+                carritoVenta = [];
+                renderizarCarrito();
+                document.getElementById('venta-placa').value = "";
+                cargarProductos();
+                cargarDashboard();
+            } catch (err) {
+                Swal.fire("Error", err.message, "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-check-double"></i> Confirmar Venta y Descontar`;
+            }
+        }
+
+        // ==========================================
+        // 4. COMPRAS Y ABASTECIMIENTO
+        // ==========================================
+        async function procesarCompra(e) {
+            e.preventDefault();
+            const proveedor = document.getElementById('compra-proveedor').value.trim();
+            const factura = document.getElementById('compra-factura').value.trim();
+            const prodId = parseInt(document.getElementById('compra-producto').value);
+            const cantidad = parseInt(document.getElementById('compra-cantidad').value);
+            const costo = parseFloat(document.getElementById('compra-costo').value);
+
+            if (!prodId || cantidad <= 0 || costo < 0) {
+                Swal.fire("Atención", "Complete todos los campos de forma válida.", "warning");
+                return;
+            }
+
+            const payload = {
+                proveedor_nombre: proveedor,
+                numero_factura: factura || null,
+                items: [{
+                    product_id: prodId,
+                    cantidad: cantidad,
+                    costo_unitario: costo
+                }]
+            };
+
+            const btn = document.getElementById('btn-registrar-compra');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Procesando en Supabase...`;
+
+            try {
+                const res = await fetch(`${API_URL}/purchases`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || "Error al registrar compra");
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Ingreso de Repuestos Confirmado!',
+                    text: 'Las existencias fueron sumadas al inventario de Mecánica Yeyko en Supabase.',
+                    confirmButtonColor: '#9333ea'
+                });
+
+                document.getElementById('form-compra').reset();
+                cargarProductos();
+                cargarDashboard();
+                cambiarPestana('inventario');
+            } catch (err) {
+                Swal.fire("Error", err.message, "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-arrow-down-to-bracket"></i> Confirmar Entrada a Almacén`;
+            }
+        }
+
+        // ==========================================
+        // 5. KARDEX Y AUDITORÍA
+        // ==========================================
+        async function cargarKardex() {
+            try {
+                const res = await fetch(`${API_URL}/movements`);
+                const movimientos = await res.json();
+                const tbody = document.getElementById('tabla-kardex');
+
+                if (movimientos.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">No hay movimientos en el Kardex.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = movimientos.map(m => {
+                    const prod = catalogoProductos.find(p => p.id === m.product_id);
+                    const prodNombre = prod ? prod.nombre : `Repuesto #${m.product_id}`;
+
+                    return `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3 px-4 text-xs font-mono text-slate-500">${formatearFecha(m.fecha)}</td>
+                            <td class="py-3 px-4">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-extrabold ${badgeMovimiento(m.tipo_movimiento)}">
+                                    ${m.tipo_movimiento}
+                                </span>
+                            </td>
+                            <td class="py-3 px-4 font-bold text-slate-900">${prodNombre}</td>
+                            <td class="py-3 px-4 font-black text-center">${m.cantidad}</td>
+                            <td class="py-3 px-4 text-center text-slate-500 font-semibold">${m.stock_anterior}</td>
+                            <td class="py-3 px-4 text-center font-extrabold text-slate-900">${m.stock_posterior}</td>
+                            <td class="py-3 px-4 text-xs text-slate-600">
+                                <span class="font-bold text-slate-800">${m.referencia_origen || ''}</span>
+                                ${m.motivo ? ` - ${m.motivo}` : ''}
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error("Error al cargar Kardex:", err);
+            }
+        }
+
+        // ==========================================
+        // 6. CREACIÓN DE NUEVO PRODUCTO (MODAL)
+        // ==========================================
+        function abrirModalProducto() {
+            document.getElementById('modal-producto').classList.remove('hidden');
+        }
+
+        function cerrarModalProducto() {
+            document.getElementById('modal-producto').classList.add('hidden');
+            document.getElementById('form-nuevo-producto').reset();
+        }
+
+        async function guardarProducto(e) {
+            e.preventDefault();
+            const sku = document.getElementById('prod-sku').value.trim();
+            const nombre = document.getElementById('prod-nombre').value.trim();
+            const categoria = document.getElementById('prod-categoria').value;
+            const precioCompra = parseFloat(document.getElementById('prod-precio-compra').value) || 0;
+            const precioVenta = parseFloat(document.getElementById('prod-precio-venta').value) || 0;
+            const stock = parseInt(document.getElementById('prod-stock').value) || 0;
+            const stockMinimo = parseInt(document.getElementById('prod-stock-minimo').value) || 3;
+            const esServicio = document.getElementById('prod-es-servicio').checked;
+
+            const payload = {
+                sku: sku,
+                nombre: nombre,
+                categoria: categoria,
+                precio_compra: precioCompra,
+                precio_venta: precioVenta,
+                stock_actual: stock,
+                stock_minimo: stockMinimo,
+                es_servicio: esServicio
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/products`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || "Error al crear producto");
+                }
+
+                cerrarModalProducto();
+                Swal.fire("¡Repuesto Registrado!", `'${nombre}' fue agregado exitosamente al catálogo.`, "success");
+                cargarProductos();
+                cargarDashboard();
+            } catch (err) {
+                Swal.fire("Error", err.message, "error");
+            }
+        }
+
+        // Helpers
+        function badgeMovimiento(tipo) {
+            if (tipo === 'ENTRADA') return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
+            if (tipo === 'SALIDA') return 'bg-red-100 text-red-800 border border-red-200';
+            return 'bg-amber-100 text-amber-800 border border-amber-200';
+        }
+
+        function formatearFecha(isoString) {
+            if (!isoString) return "-";
+            const f = new Date(isoString);
+            return f.toLocaleDateString("es-BO", { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+    </script>
+</body>
+</html>

@@ -28,20 +28,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Montar carpeta de archivos estáticos
-if os.path.exists("static"):
-    app.mount("/static", StaticFiles(directory="static"), name="static")
+# Configuración de rutas de archivos estáticos
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+INDEX_FILE = os.path.join(STATIC_DIR, "index.html")
+
+if os.path.exists(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.get("/", tags=["Interfaz Web"])
 def read_root():
     """Servir la interfaz web visual amigable de Mecánica Yeyko."""
-    if os.path.exists("static/index.html"):
-        return FileResponse("static/index.html")
+    if os.path.exists(INDEX_FILE):
+        return FileResponse(INDEX_FILE)
     return {
         "sistema": "Mecánica Yeyko - Sistema de Gestión y Control Operativo",
         "estado": "En línea",
         "documentacion_swagger": "/docs"
     }
+
 
 
 
